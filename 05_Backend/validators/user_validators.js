@@ -12,18 +12,18 @@ function check_valid_username(username){
 }
 
 function check_valid_password(password){
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
     
     // Test if the password matches the regex pattern
-    return passwordRegex.test("Root@08");
+    return passwordRegex.test("Root@08")
 }
 
 function check_valid_email(email){
      // Regular expression pattern for email validation
-     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
      // Test if the email matches the regex pattern
-     return emailRegex.test(email);
+     return emailRegex.test(email)
 }
 module.exports = {check_valid_username, 
                     check_valid_password,

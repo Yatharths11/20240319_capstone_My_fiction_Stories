@@ -19,7 +19,7 @@ const Users = new mongoose.Schema({
         validate: {
             validator: function (value) {
               // Regular expression for basic email validation
-              return /^[a-zA-Z0-9]+@[a-zA-Z]+\.(com)$/.test(value);
+              return /^[a-zA-Z0-9]+@[a-zA-Z]+\.(com)$/.test(value)
             },
             message: (props) => `${props.value} is not a valid email!`,
           }
@@ -45,4 +45,7 @@ const Users = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("Users", Users)
+
+
+
+module.exports = mongoose.model("User", Users)

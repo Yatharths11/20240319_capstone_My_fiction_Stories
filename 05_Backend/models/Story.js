@@ -1,14 +1,15 @@
 const mongoose = require("mongoose")
 const Users = require("../models/User")
 
-const Story = new  mongoose.Schema({
+const StorySchema = new  mongoose.Schema({
     prompt:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Prompt"
     },
     currentContributor:{
-        ty
-    }
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Users'
+    },
     content:[
         {
             text:{
@@ -31,6 +32,9 @@ const Story = new  mongoose.Schema({
               },
         }
     ],
+    contributed_today:{
+
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -47,9 +51,9 @@ const Story = new  mongoose.Schema({
         }],
         default: [], // Initialize as an empty array
         required: function() {
-            return this.isPrivate; // Required if story is private
+            return this.isPrivate // Required if story is private
         }
     }
 })
 
-module.exports = {Story}
+module.exports = mongoose.model("Story",StorySchema)

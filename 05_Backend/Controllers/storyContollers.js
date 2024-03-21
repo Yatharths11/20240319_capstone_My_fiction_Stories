@@ -1,22 +1,24 @@
 const Story = require("../models/Story")
-const Prompt = require( "../models/Prompt");
+const Prompt = require( "../models/Prompt")
 const dayjs = require('dayjs')
 //import dayjs from 'dayjs' // ES 2015
 dayjs().format()
-const { decodeToken } = require("../utility/utility");
+const { decodeToken } = require("../utility/utility")
+const User = require("../models/User")
+
 /**
  * API that gets all the stories from the database
  * @param {*} req 
  * @param {*} res 
  * @returns all stories from database
  */
-const getall = async (req,res)=>{
+const all = async (req,res)=>{
     try {
-        const stories = await Story.find().populate('contributors');
-        res.status(200).json({ status: 'success', data: { stories } });
+        const stories = await Story.find().populate('contributors')
+        res.status(200).json({ status: 'success', data: { stories } })
     } catch (err) {
-        console.error('Error fetching stories:', err);
-        res.status(500).json({ status: 'error', message: 'Internal server error' });
+        console.error('Error fetching stories:', err)
+        res.status(500).json({ status: 'error', message: 'Internal server error' })
     }
 }
 
@@ -27,117 +29,177 @@ const getall = async (req,res)=>{
  * @param {*} res 
  * @returns 
  */
-const getOne = async (req,res)=>{
+const story = async (req,res)=>{
     try {
         // Check if the ID parameter is provided
-        const storyId = req.query.id;
+        const storyId = req.query.id
         if (!storyId) {
-            return res.status(400).json({ message: "Story ID is required" });
+            return res.status(400).json({ message: "Story ID is required" })
         }
 
         // Find the story by ID
-        const story = await Story.findById(storyId).populate('contributors');
+        const story = await Story.findById(storyId).populate('contributors')
 
         // Check if the story exists
         if (!story) {
-            return res.status(404).json({ message: "Story not found" });
+            return res.status(404).json({ message: "Story not found" })
         }
 
         // Respond with the story
-        res.status(200).json({ status: 'success', data: { story } });
+        res.status(200).json({ status: 'success', data: { story } })
     } catch (err) {
         // Handle errors
-        console.error('Error fetching story:', err);
-        res.status(500).json({ status: 'error', message: 'Internal server error' });
+        console.error('Error fetching story:', err)
+        res.status(500).json({ status: 'error', message: 'Internal server error' })
     }
 }
 
+
+/**
+ * Api to create new story. It also creates prompt at the same time
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
 const create = async (req,res)=>{
 
-    const token = req.header.authorization
-    const decodedtoken = decodeToken(token)
-    const day = dayjs()
-
-    const title = req.body.title;
-    if(!title){
-        res.status(403).json("Title cannot be empty.")
-    }
-
-    const description = req.body.description
-    if(!description){
-        res.status(403).json("Description cannot be empty.")
-    }
-
-    let prompt = {
-        title:req.body.title,
-        descrption:req.body.descrption,
-        creator: decodedtoken.username,
-        date:$`${day.$D}-${day.$M + 1}-${day.$y}`
-    }
-
-    const promptdb = await Prompt.create(prompt)
-
-    let story = {
-        prompt : promptdb.id,
-        createdAt: new Date().String(),
-        isPrivate: req.body.isPrivate,
-        contributors: req.body.contributors? [decodedtoken.username]: [],
-        content:{
-            text:"",
-            contributor:"",
-            date:"",
-            upvotes:"",
-            downvotes:""
-        }
-    }
-    
-    await Story.create(story)
-    .then((data)=> {
-       res.status(201).json({status:'created', id: data._id})
-    })
-}
-
-const add = async (req, res) => {
     try {
-        const storyId = req.params.id;
-        const token = req.header('Authorization');
+        const token = req.headers.authorization
+
+        //token is present or not
         if (!token) {
-            return res.status(401).json({ message: 'Authorization token is missing.' });
+            return res.status(401).json({ message: 'Authorization token is missing.' })
         }
         
-        const decodedToken = decodeToken(token);
+        //username in token is in db or not
+        const decodedToken = decodeToken(token)
         if (!decodedToken || !decodedToken.username) {
-            return res.status(401).json({ message: 'Invalid authorization token.' });
+            return res.status(401).json({ message: 'Invalid authorization token.' })
         }
 
-        const story = await Story.findById(storyId);
-        if (!story || !story.contributors.includes(decodedToken.username)) {
-            return res.status(404).json({ message: 'Story not found or you are not a contributor in this story.' });
+
+        const userExists = await User.find({username:decodedToken.username})
+
+        //title of the story is required
+        const title = req.body.title
+        if (!title) {
+            return res.status(400).json({ message: 'Title cannot be empty.' })
         }
 
-        const currentDate = new Date().toISOString(); // Get current date in ISO format
+        //description of the story is also mandatory
+        const description = req.body.description
+        if (!description) {
+            return res.status(400).json({ message: 'Description cannot be empty.' })
+        }
 
+        //takein current date
+        const currentDate = new Date().toISOString() // Get current date in ISO format
+        
+        // Pormpt Creation
+        const prompt = {
+            title: req.body.title,
+            description: req.body.description,
+            creator: userExists.username,
+            date: currentDate
+        }
+
+        //creating new prompt as document in the database
+        const promptdb = await Prompt.create(prompt)
+        console.log('Prompt created successfully:', promptdb)
+        
+        //story creation
+        const story = {
+            prompt_id: promptdb.id,
+            title:req.body.title,
+            createdAt: currentDate,
+            isPrivate: req.body.isPrivate,
+            contributors: req.body.contributors ? [userExists.id,req.body.contributors] : [],
+            content: []
+        }
+
+        //retriving the created story to send as a response
+        const createdStory = await Story.create(story)
+
+        // sending story as a response
+        res.status(201).json({ status: 'created', story: createdStory })
+
+
+    } catch (err) {
+        console.error('Error creating story:', err)
+        res.status(500).json({ message: 'Internal server error.' })
+    }
+}
+
+/**
+ * API that adds text to a already created story
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
+const add = async (req, res) => {
+    try {
+        const storyId = req.query.id
+
+        //Authentication
+        const token = req.header('Authorization')
+        if (!token) {
+            return res.status(401).json({ message: 'Authorization token is missing.' })
+        }
+        
+        //Authorization
+        const decodedToken = decodeToken(token)
+        if (!decodedToken || !decodedToken.username) {
+            return res.status(401).json({ message: 'Invalid authorization token.' })
+        }
+
+        //Checking if the story exists or not 
+        const story = await Story.findById(storyId)
+        console.log(story)
+        if (!story) {
+            return res.status(404).json({ message: 'Story not found.' })
+        }
+        // console.log(typeof( story.content.contributor))
+        //If the story is public then allow anyone to add to it
+        //if it is private, then check is the current user is one of the constributor or not
+        if(story.isPrivate === true){
+            if(!(decodedToken in  story.contributors)){
+                return res.status(403).send("You are not authorized to perform this action.")
+            } 
+        }
+
+        // Get current date in ISO format
+        const currentDate = new Date().toISOString() 
+
+        const contents = story.content
+        contents.forEach(element => {
+            if(element.contributor === decodeToken.username 
+                && element.date == currentDate ){
+                    res.status(300).send(`You have already contributed today. Please contribute tomorrow.`)
+                }
+        });
+
+
+        //collecting the contents to be added from the body
         const newContent = {
             text: req.body.text,
-            contributor: decodedToken.username,
+            contributor: decodedToken.id,
             date: currentDate,
             upvotes: 0,
             downvotes: 0
-        };
+        }
 
-        story.content.push(newContent);
-        story.markModified('content'); // Tell Mongoose that we changed the array
+        story.content.push(newContent)
+        story.markModified('content') // Tell Mongoose that we changed the array
 
-        const savedStory = await story.save();
-        const addedContent = savedStory.content[savedStory.content.length - 1];
+        const savedStory = await story.save()
+        const addedContent = savedStory.content[savedStory.content.length - 1]
 
-        res.status(201).json({ message: 'Content added successfully.', content: addedContent });
+        res.status(201).json({ message: 'Content added successfully.', content: addedContent })
     } catch (err) {
-        console.error('Error adding content:', err);
-        res.status(500).json({ message: 'Internal server error.' });
+        console.error('Error adding content:', err)
+        res.status(500).json({ message: 'Internal server error.' })
     }
-};
+}
 
 
-
-module.exports = {getall, getOne, create}
+module.exports = {all, story, create, add}

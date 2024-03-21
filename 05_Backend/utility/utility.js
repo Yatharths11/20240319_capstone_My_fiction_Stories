@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 
 /**
  * Function that returns a hashed password that
@@ -8,8 +8,8 @@ const bcrypt = require("bcrypt");
  * @returns hashpassword for input password
  */
 async function hashPassword(password) {
-    const salt = await bcrypt.genSalt();
-    return await bcrypt.hash(password, salt);
+    const salt = await bcrypt.genSalt()
+    return await bcrypt.hash(password, salt)
 }
   
 
@@ -21,7 +21,7 @@ async function hashPassword(password) {
  * plaintext value matches the hashed value.
  */
 async function verifyPassword(user, password) {
-  return await bcrypt.compare(password, user.password);
+  return await bcrypt.compare(password, user.password)
 }
 
 
@@ -32,8 +32,12 @@ async function verifyPassword(user, password) {
  * @returns decoded - the decoded payload from token
  */
 function decodeToken(token) {
-    const decodedToken = token.split(" ")[1];
-    return jwt.verify(token, process.env.SECRET_KEY);
+  const tokenPayload = token.split(' ')[1]
+
+  // Verify and decode the token
+  const decoded = jwt.verify(tokenPayload, process.env.SECRET_KEY)
+
+  return decoded
 }
 
-module.exports = { hashPassword, verifyPassword, decodeToken };
+module.exports = { hashPassword, verifyPassword, decodeToken }

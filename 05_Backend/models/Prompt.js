@@ -15,7 +15,7 @@ const Prompt = new mongoose.Schema({
     },
 
     story_id:{
-        type: [mongoose.Schema.Types.ObjectId], 
+        type: mongoose.Schema.Types.ObjectId, 
         ref:"Story"      
     },
 
@@ -29,4 +29,4 @@ const Prompt = new mongoose.Schema({
     }
 })
 
-module.exports = {Prompt}
+module.exports = mongoose.model("Prompt", Prompt)
