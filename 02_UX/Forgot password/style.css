@@ -1,0 +1,31 @@
+
+input{
+    padding: 20px;
+    width: 600px;
+    height: 80px;
+    border: 2px solid #ADADAD;
+    border-radius: 12px;
+    margin:20px;
+    font-size: 20px;
+}
+label{
+    font-family:'poppins';
+    font-style: bold;
+    font-size: 30px;
+    margin: 30px;
+    margin-left: 40px;
+}
+.input-group{
+    margin: 20px;
+    font-family:'poppins';
+}
+.forgot-password{
+    display: block;
+    border-radius: 12px;
+    margin:10px;
+}
+#submit-button{
+    background-color: #352F44;
+    color: white;
+    font-size: 20px;
+}
