@@ -4,6 +4,7 @@ const router = express.Router()
 
 // internal imports
 const usersController = require("../Controllers/usersControllers")
+const { register, login } = require("../Controllers")
 
 // routes
 router.post("/register", usersController.register)
