@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 const Users = require("../models/User")
-
+const Prompt = require("../models/Prompt")
 const StorySchema = new  mongoose.Schema({
     prompt:{
         type:mongoose.Schema.Types.ObjectId,
@@ -32,9 +32,7 @@ const StorySchema = new  mongoose.Schema({
               },
         }
     ],
-    contributed_today:{
-
-    },
+    
     createdAt: {
         type: Date,
         default: Date.now,

@@ -1,14 +1,11 @@
-const Prompt =  require("../models/Prompt")
+const Prompt = require("../models/Prompt")
 const { decodeToken } = require("../utility/utility")
-const User = require('./User')
+// const User = require('../models/User')
 
-
-async function getPromptById(id){
-
-    const prompt = await Prompt.findById(id)
-    console.log(prompt)
-
-
+const getprompt = async (req,res)=>{
+    const prompt = await Prompt.findById(req.query.id)
+    res.status(200).json({prompt:prompt})
 }
 
-getPromptById('65fbc6bc48dfa91d7535ecc8')
+module.exports = { getprompt}
+
