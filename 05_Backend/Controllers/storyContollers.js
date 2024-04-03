@@ -1,10 +1,12 @@
 const Story = require("../models/Story")
 const Prompt = require("../models/Prompt")
 const dayjs = require('dayjs')
+const mongoose = require('mongoose')
 //import dayjs from 'dayjs' // ES 2015
 dayjs().format()
 const { decodeToken } = require("../utility/utility")
 const User = require("../models/User")
+const { decode } = require("jsonwebtoken")
 
 /**
  * API that gets all the stories from the database
@@ -40,7 +42,7 @@ const story = async (req, res) => {
         // Find the story by ID
         const story = await Story.findById(storyId).populate('contributors')
 
-        // Check if the story exists
+        // Check if the story exists    
         if (!story) {
             return res.status(404).json({ message: "Story not found" })
         }
@@ -65,7 +67,7 @@ const create = async (req, res) => {
 
     try {
         const token = req.headers.authorization
-
+        console.log("chutiya ",token)
         //token is present or not
         if (!token) {
             return res.status(401).json({ message: 'Authorization token is missing.' })
@@ -99,7 +101,7 @@ const create = async (req, res) => {
         const prompt = {
             title: req.body.title,
             description: req.body.description,
-            creator: userExists.username,
+            creator: decodeToken.username,
             date: currentDate
         }
 
@@ -190,9 +192,9 @@ const add = async (req, res) => {
             downvotes: 0
         }
         console.log(story.content);
-        story.content = newContent
+        story.content.push(newContent)
         console.log(story.content);
-        story.markModified('content') // Tell Mongoose that we changed the array
+        story.markModified('content') 
 
         const savedStory = await story.save()
         const addedContent = savedStory.content[savedStory.content.length - 1]
@@ -205,4 +207,33 @@ const add = async (req, res) => {
 }
 
 
-module.exports = { all, story, create, add }
+const getbyusername = async (req,res)=>{
+    //Authentication
+    const token = req.header('Authorization')
+    if (!token) {
+        return res.status(401).json({ message: 'Authorization token is missing.' })
+    }
+
+    //Authorization
+    const decodedToken = decodeToken(token)
+    if (!decodedToken || !decodedToken.username) {
+        return res.status(401).json({ message: 'Invalid authorization token.' })
+    }
+    const user_id = decodedToken.id
+    console.log(user_id)
+    const userStories = await Story.aggregate([
+        {
+          '$unwind': '$content'
+        }, {
+          '$match': {
+            'content.contributor': new mongoose.Types.ObjectId(user_id)
+          }
+        }
+      ])
+    .catch(error => {
+        console.error(error);
+    });
+    res.status(200).send(userStories)
+}
+
+module.exports = { all, story, create, add, getbyusername }

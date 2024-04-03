@@ -5,7 +5,7 @@ const {
   updateProfile,
   deleteUser
 } = require("./usersControllers");
-const { all, story, create, add } = require("./storyContollers");
+const { all, story, create, add, getbyusername } = require("./storyContollers");
 module.exports = {
   register,
   login,
@@ -13,6 +13,7 @@ module.exports = {
   updateProfile,
   deleteUser,
   all,
+  getbyusername,
   story,
   create,
   add,
