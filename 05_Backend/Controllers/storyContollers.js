@@ -95,14 +95,14 @@ const create = async (req, res) => {
         }
 
         //takein current date
-        const currentDate = new Date().toISOString() // Get current date in ISO format
+        const currentDate = new Date() // Get current date in ISO format
 
         // Pormpt Creation
         const prompt = {
             title: req.body.title,
             description: req.body.description,
             creator: decodeToken.username,
-            date: currentDate
+            date: currentDate.getDate()
         }
 
         //creating new prompt as document in the database
@@ -118,7 +118,9 @@ const create = async (req, res) => {
             createdAt: currentDate,
             isPrivate: req.body.isPrivate,
             contributors: req.body.contributors ? [userExists.id, req.body.contributors] : [],
-            content: []
+            content: [
+                {"text":req.body.story}
+            ]
         }
 
         //retriving the created story to send as a response
@@ -172,12 +174,12 @@ const add = async (req, res) => {
         }
 
         // Get current date in ISO format
-        const currentDate = new Date().toISOString()
+        const currentDate = new Date()
 
         const contents = story.content
         contents.forEach(element => {
-            if (element.contributor === decodeToken.username
-                && element.date == currentDate) {
+            if (element.contributor === decodeToken.id
+                && element.date.getDate() == currentDate.getDate()) {
                 res.status(300).send(`You have already contributed today. Please contribute tomorrow.`)
             }
         });
@@ -191,9 +193,9 @@ const add = async (req, res) => {
             upvotes: 0,
             downvotes: 0
         }
-        console.log(story.content);
+        // console.log(story.content);
         story.content.push(newContent)
-        console.log(story.content);
+        // console.log(story.content);
         story.markModified('content') 
 
         const savedStory = await story.save()
@@ -222,9 +224,7 @@ const getbyusername = async (req,res)=>{
     const user_id = decodedToken.id
     console.log(user_id)
     const userStories = await Story.aggregate([
-        {
-          '$unwind': '$content'
-        }, {
+         {
           '$match': {
             'content.contributor': new mongoose.Types.ObjectId(user_id)
           }
@@ -233,6 +233,12 @@ const getbyusername = async (req,res)=>{
     .catch(error => {
         console.error(error);
     });
+    storiesarray=[]
+    userStories.forEach((story)=>{
+        if(!storiesarray.includes(story._id)){
+            storiesarray.push(story)
+        }
+    })
     res.status(200).send(userStories)
 }
 
