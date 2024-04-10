@@ -33,10 +33,10 @@ async function verifyPassword(user, password) {
  */
 function decodeToken(token) {
   const tokenPayload = token.split(' ')[1]
-  console.log("backend token:", tokenPayload)
+  // console.log("backend token:", tokenPayload)
   // Verify and decode the token
   const decoded = jwt.verify(tokenPayload, process.env.SECRET_KEY)
-  console.log(decoded)
+  // console.log(decoded)
   return decoded
 }
 

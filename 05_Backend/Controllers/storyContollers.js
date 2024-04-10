@@ -67,7 +67,7 @@ const create = async (req, res) => {
 
     try {
         const token = req.headers.authorization
-        console.log("chutiya ",token)
+        console.log(token)
         //token is present or not
         if (!token) {
             return res.status(401).json({ message: 'Authorization token is missing.' })
@@ -95,7 +95,7 @@ const create = async (req, res) => {
         }
 
         //takein current date
-        const currentDate = new Date() // Get current date in ISO format
+        const currentDate = new Date() 
 
         // Pormpt Creation
         const prompt = {
@@ -117,9 +117,9 @@ const create = async (req, res) => {
             title: req.body.title,
             createdAt: currentDate,
             isPrivate: req.body.isPrivate,
-            contributors: req.body.contributors ? [userExists.id, req.body.contributors] : [],
+            contributors: req.body.contributors ? [userExists.id, req.body.contributors] : [userExists.id],
             content: [
-                {"text":req.body.story}
+                {"text":req.body.story,date:currentDate}
             ]
         }
 
@@ -164,12 +164,13 @@ const add = async (req, res) => {
         if (!story) {
             return res.status(404).json({ message: 'Story not found.' })
         }
+        console.log("contributors",decodedToken.id)
         // console.log(typeof( story.content.contributor))
         //If the story is public then allow anyone to add to it
         //if it is private, then check is the current user is one of the constributor or not
         if (story.isPrivate === true) {
-            if (!(decodedToken in story.contributors)) {
-                return res.status(403).send("You are not authorized to perform this action.")
+            if (!(story.contributors.includes(decodedToken.id))) {
+                return res.status(403).json({message: "You are not authorized to perform this action"})
             }
         }
 
@@ -177,7 +178,9 @@ const add = async (req, res) => {
         const currentDate = new Date()
 
         const contents = story.content
+        console.log(contents)
         contents.forEach(element => {
+            console.log(element)
             if (element.contributor === decodeToken.id
                 && element.date.getDate() == currentDate.getDate()) {
                 res.status(300).send(`You have already contributed today. Please contribute tomorrow.`)
