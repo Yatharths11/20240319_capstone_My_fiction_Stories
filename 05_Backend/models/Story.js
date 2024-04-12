@@ -1,38 +1,38 @@
 const mongoose = require("mongoose")
 const Users = require("../models/User")
 const Prompt = require("../models/Prompt")
-const StorySchema = new  mongoose.Schema({
-    prompt:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Prompt"
+const StorySchema = new mongoose.Schema({
+    prompt: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Prompt"
     },
-    currentContributor:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Users'
+    currentContributor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
     },
-    content:[
+    content: [
         {
-            text:{
-                type:String,
+            text: {
+                type: String,
             },
-            contributor:{
-                type:mongoose.Schema.Types.ObjectId,
-                ref:"User"
+            contributor: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
             },
-            date:{
-                type:Date,
+            date: {
+                type: Date,
             },
             upvotes: {
                 type: Number,
                 default: 0,
-              },
-              downvotes: {
+            },
+            downvotes: {
                 type: Number,
                 default: 0,
-              },
+            },
         }
     ],
-    
+
     createdAt: {
         type: Date,
         default: Date.now,
@@ -48,10 +48,10 @@ const StorySchema = new  mongoose.Schema({
             ref: 'User'
         }],
         default: [], // Initialize as an empty array
-        required: function() {
+        required: function () {
             return this.isPrivate // Required if story is private
         }
     }
 })
 
-module.exports = mongoose.model("Story",StorySchema)
+module.exports = mongoose.model("Story", StorySchema)

@@ -1,12 +1,10 @@
 const Story = require("../models/Story")
 const Prompt = require("../models/Prompt")
-const dayjs = require('dayjs')
 const mongoose = require('mongoose')
-//import dayjs from 'dayjs' // ES 2015
-dayjs().format()
+const date_streak = require('date-streaks')
 const { decodeToken } = require("../utility/utility")
 const User = require("../models/User")
-const { decode } = require("jsonwebtoken")
+
 
 /**
  * API that gets all the stories from the database
@@ -35,6 +33,7 @@ const story = async (req, res) => {
     try {
         // Check if the ID parameter is provided
         const storyId = req.query.id
+        console.log(storyId)
         if (!storyId) {
             return res.status(400).json({ message: "Story ID is required" })
         }
@@ -95,7 +94,7 @@ const create = async (req, res) => {
         }
 
         //takein current date
-        const currentDate = new Date() 
+        const currentDate = new Date()
 
         // Pormpt Creation
         const prompt = {
@@ -119,7 +118,7 @@ const create = async (req, res) => {
             isPrivate: req.body.isPrivate,
             contributors: req.body.contributors ? [userExists.id, req.body.contributors] : [userExists.id],
             content: [
-                {"text":req.body.story,date:currentDate}
+                { "text": req.body.story, date: currentDate }
             ]
         }
 
@@ -160,59 +159,126 @@ const add = async (req, res) => {
 
         //Checking if the story exists or not 
         const story = await Story.findById(storyId)
-        console.log(story)
+        // console.log(story)
         if (!story) {
             return res.status(404).json({ message: 'Story not found.' })
-        }
-        console.log("contributors",decodedToken.id)
-        // console.log(typeof( story.content.contributor))
-        //If the story is public then allow anyone to add to it
-        //if it is private, then check is the current user is one of the constributor or not
-        if (story.isPrivate === true) {
-            if (!(story.contributors.includes(decodedToken.id))) {
-                return res.status(403).json({message: "You are not authorized to perform this action"})
-            }
         }
 
         // Get current date in ISO format
         const currentDate = new Date()
+        //If the story is public then allow anyone to add to it
+        //if it is private, then check is the current user is one of the constributor or not
+        let alreadyContributed = false;
 
-        const contents = story.content
-        console.log(contents)
-        contents.forEach(element => {
-            console.log(element)
-            if (element.contributor === decodeToken.id
-                && element.date.getDate() == currentDate.getDate()) {
-                res.status(300).send(`You have already contributed today. Please contribute tomorrow.`)
-            }
-        });
+        // Checking if the user has already contributed today
+        if (story.isPrivate === true && story.contributors.includes(decodedToken.id)) {
+            const contents = story.content;
+            contents.forEach((content) => {
+                if (content.contributor === decodedToken._id &&
+                    content.date.getDate() === currentDate.getDate()) {
+                    alreadyContributed = true;
+                }
+            });
+        }
 
+        // If the user has already contributed today, send the appropriate response
+        if (alreadyContributed) {
+            return res.status(300).json({ message: `You have already contributed today. Please contribute tomorrow.` });
+        }
 
-        //collecting the contents to be added from the body
+        // Collecting the contents to be added from the body
         const newContent = {
             text: req.body.text,
             contributor: decodedToken.id,
             date: currentDate,
             upvotes: 0,
             downvotes: 0
-        }
-        // console.log(story.content);
-        story.content.push(newContent)
-        // console.log(story.content);
-        story.markModified('content') 
+        };
 
-        const savedStory = await story.save()
-        const addedContent = savedStory.content[savedStory.content.length - 1]
+        story.content.push(newContent);
+        story.markModified('content');
 
-        res.status(201).json({ message: 'Content added successfully.', content: addedContent })
+        const savedStory = await story.save();
+        const addedContent = savedStory.content[savedStory.content.length - 1];
+
+        // Sending the success response after adding content
+        res.status(201).json({ message: 'Content added successfully.', content: addedContent });
     } catch (err) {
-        console.error('Error adding content:', err)
-        res.status(500).json({ message: 'Internal server error.' })
+        console.error('Error adding content:', err);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 }
 
+// const add = async (req, res) => {
+//     try {
+//         story_id = req.query.id
 
-const getbyusername = async (req,res)=>{
+//         // Authentication
+//         const token = req.header('Authorization')
+//         if (!token) {
+//             return res.status(401).json({ message: 'Authorization token is missing.' })
+//         }
+
+//         // Authorization
+//         const decodedToken = decodeToken(token)
+//         if (!decodedToken || !decodedToken.username) {
+//             return res.status(401).json({ message: 'Invalid authorization token.' })
+//         }
+
+//         // Checking if the story exists or not 
+//         const story = await Story.findById(story_id)
+//         if (!story) {
+//             return res.status(404).json({ message: 'Story not found.' })
+//         }
+
+//         // Getting current date
+//         const currentDate = new Date()
+
+//         // Checking for private story
+//         if (story.isPrivate === true) {
+//             if (!story.contributors.includes(decodedToken.id)) {
+//                 return res.status(401).send("You are not authorized to contribute to this private story")
+//             }
+
+
+//         }
+
+//         // Checking if the contributor has already contributed today
+//         const alreadyContributedToday = story.content.some(content => {
+//             // console.log(content.date.getDate(), currentDate.getDate())
+//             return content.date.getDate() !== currentDate.getDate()
+//         })
+//         console.log(alreadyContributedToday)
+//         if (alreadyContributedToday) {
+//             console.log(decodedToken.id,)
+//             return res.status(401).send("You have already contributed today. Please contribute tomorrow")
+//         }
+
+//         // When story is public or has passed through privacy filters
+//         const newContent = {
+//             text: req.body.text,
+//             contributor: decodedToken.id,
+//             date: currentDate,
+//             upvotes: 0,
+//             downvotes: 0
+//         }
+
+//         story.content.push(newContent);
+//         story.markModified('content');
+
+//         const savedStory = await story.save()
+//         const addedContent = savedStory.content[savedStory.content.length - 1]
+
+//         // Sending the success response after adding content
+//         return res.status(201).json({ message: 'Content added successfully.', content: addedContent });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ message: 'Internal server error.' });
+//     }
+// }
+
+
+const getbyusername = async (req, res) => {
     //Authentication
     const token = req.header('Authorization')
     if (!token) {
@@ -226,23 +292,42 @@ const getbyusername = async (req,res)=>{
     }
     const user_id = decodedToken.id
     console.log(user_id)
+
     const userStories = await Story.aggregate([
-         {
-          '$match': {
-            'content.contributor': new mongoose.Types.ObjectId(user_id)
-          }
+        {
+            '$match': {
+                'content.contributor': new mongoose.Types.ObjectId(user_id)
+            }
         }
-      ])
-    .catch(error => {
-        console.error(error);
-    });
-    storiesarray=[]
-    userStories.forEach((story)=>{
-        if(!storiesarray.includes(story._id)){
+    ])
+        .catch(error => {
+            console.error(error);
+        });
+    storiesarray = []
+    contribution_dates = []
+    userStories.forEach((story) => {
+
+        if (!storiesarray.includes(story._id)) {
             storiesarray.push(story)
+            story.content.forEach((content) => {
+                if (content.date !== undefined) {
+                    // console.log("date",content.date.getDate())
+                    contribution_dates.push(content.date.getDate())
+                }
+
+            })
         }
     })
-    res.status(200).send(userStories)
+
+    console.log(userStories.length)
+    const streak_summary = date_streak.summary([contribution_dates])
+    console.log(streak_summary) 
+    data = {
+        stories: userStories,
+        currentStreak: streak_summary.currentStreak,
+        longestStreak: streak_summary.longestStreak
+    }
+    res.status(200).send(data)
 }
 
 module.exports = { all, story, create, add, getbyusername }
