@@ -4,6 +4,7 @@ const mongoose = require("mongoose")
 const bodyParser = require("body-parser")
 const dotenv = require("dotenv")
 const cors = require('cors');
+
 // Load environment variables from .env file
 dotenv.config()
 
@@ -23,6 +24,10 @@ const userRoutes = require("./routes/userRoutes.js")
 const storyRoutes = require("./routes/storyRoutes.js")
 //Prompts Routes  - Add Prompt, Get all prompt for a user by id
 const promptRoutes = require("./routes/promptRoutes.js")
+// Group Router -  Add to group, 
+const groupRoutes = require("./routes/groupRoutes.js");
+
+
 // Connect to MongoDB asynchronously
 const connectToMongoDB = async () => {
   try {
@@ -37,7 +42,9 @@ const connectToMongoDB = async () => {
 app.use("/auth", authRoutes)
 app.use("/users", userRoutes)
 app.use("/story", storyRoutes)
-app.use("/prompt",promptRoutes)
+app.use("/prompt", promptRoutes)
+app.use("/group", groupRoutes)
+
 // Start the server after connecting to MongoDB
 const startServer = async () => {
   const port = process.env.PORT || 3000

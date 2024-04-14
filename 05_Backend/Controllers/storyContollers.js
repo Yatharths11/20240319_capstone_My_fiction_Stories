@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const date_streak = require('date-streaks')
 const { decodeToken } = require("../utility/utility")
 const User = require("../models/User")
-
+const Group = require("../models/Group")
 
 /**
  * API that gets all the stories from the database
@@ -12,10 +12,34 @@ const User = require("../models/User")
  * @param {*} res 
  * @returns all stories from database
  */
-const all = async (req, res) => {
+const allpublic = async (req, res) => {
     try {
-        const stories = await Story.find().populate('contributors')
+        const stories = await Story.find({isPrivate:false}).populate('contributors')
         res.status(200).json({ status: 'success', data: { stories } })
+    } catch (err) {
+        console.error('Error fetching stories:', err)
+        res.status(500).json({ status: 'error', message: 'Internal server error' })
+    }
+}
+
+const allprivate = async (req, res) => {
+    const token = req.headers.authorization
+    //token is present or not
+    if (!token) {
+        return res.status(401).json({ message: 'Authorization token is missing.' })
+    }
+
+    //username in token is in db or not
+    const decodedToken = decodeToken(token)
+    if (!decodedToken || !decodedToken.username) {
+        return res.status(401).json({ message: 'Invalid authorization token.' })
+    }
+    try {
+        console.log((decodedToken.id))
+        // const stories = await Story.find({isPrivate:true}).populate('contributors')
+        // res.status(200).json({ status: 'success', data: { stories } })
+        const groups = await Group.find({ collaborators: decodedToken.id });
+        res.status(200).json({ status: 'success', data: { groups } })
     } catch (err) {
         console.error('Error fetching stories:', err)
         res.status(500).json({ status: 'error', message: 'Internal server error' })
@@ -330,4 +354,4 @@ const getbyusername = async (req, res) => {
     res.status(200).send(data)
 }
 
-module.exports = { all, story, create, add, getbyusername }
+module.exports = { allpublic, story, create, add, getbyusername, allprivate }

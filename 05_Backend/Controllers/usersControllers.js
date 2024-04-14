@@ -2,7 +2,7 @@
 const Users = require("../models/User")
 const { hashPassword, decodeToken } = require("../utility/utility")
 const { check_valid_username, check_valid_password, check_valid_email } = require("../validators/user_validators")
-
+const Group = require("../models/Group")
 
 
 // Register a new user
@@ -174,6 +174,62 @@ const deleteUser = async (req, res) => {
     // Return internal server error if any error occurs during the process
     return res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
 
-module.exports = { register, profile, updateProfile, deleteUser }
+
+const getmygroup = async (req, res) => {
+
+  const token = req.headers.authorization
+
+  //verify token is present or not
+  if (!token) {
+    return res.status(401).json({ message: 'Authorization token is missing' })
+  }
+
+  //verify whether the user name is in the database or not 
+  const decodedToken = decodeToken(token)
+
+  if (!decodedToken || !decodedToken.username) {
+    return res.status(401).json({ message: 'Invalid authorization token' })
+  }
+
+  const user_id = decodedToken.id
+  console.log(user_id)
+  try {
+    // Find all groups where the given user is in the collaborators array
+    const groups = await Group.find({ collaborators: user_id }).populate('storyId');
+
+    res.status(200).json(groups);
+  } catch (error) {
+    console.error("Error finding groups:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+const mycreatedstory = async (req,res)=>{
+
+  const token = req.headers.authorization
+
+  //verify token is present or not
+  if (!token) {
+    return res.status(401).json({ message: 'Authorization token is missing' })
+  }
+
+  //verify whether the user name is in the database or not 
+  const decodedToken = decodeToken(token)
+
+  if (!decodedToken || !decodedToken.username) {
+    return res.status(401).json({ message: 'Invalid authorization token' })
+  }
+
+  const user_id = decodedToken.id
+  const my_created_stories = []
+  let query = await Group.find({creatorId: user_id})
+  .then((result)=> {
+    console.log(result)
+  })
+
+}
+
+
+module.exports = { register, profile, updateProfile, deleteUser, getmygroup, mycreatedstory }
