@@ -60,7 +60,7 @@ const register = async (req, res) => {
 }
 
 /**
- * 
+ * Get the user data 
  * @param {*} req 
  * @param {*} res 
  *@returns 102. 402
@@ -206,7 +206,7 @@ const getmygroup = async (req, res) => {
   }
 }
 
-const mycreatedstory = async (req,res)=>{
+const mycreatedstory = async (req, res) => {
 
   const token = req.headers.authorization
 
@@ -224,10 +224,10 @@ const mycreatedstory = async (req,res)=>{
 
   const user_id = decodedToken.id
   const my_created_stories = []
-  let query = await Group.find({creatorId: user_id})
-  .then((result)=> {
-    console.log(result)
-  })
+  let query = await Group.find({ creatorId: user_id })
+    .then((result) => {
+      console.log(result)
+    })
 
 }
 
