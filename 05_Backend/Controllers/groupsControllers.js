@@ -7,15 +7,15 @@ const create = async (req, res) => {
 
         //verify whetheer token is present or not
         const token = req.headers.authorization
-        const accesstoken =  token.split(" ")[1]
+        const accesstoken = token.split(" ")[1]
         // console.log(token)
         if (!token) {
             return res.status(401).send({ auth: false, message: 'No Token Provided.' })
         }
 
         // Decode the token and verify if it's valid
-        const decodedtoken = jwt.verify(accesstoken,process.env.SECRET_KEY)
-        
+        const decodedtoken = jwt.verify(accesstoken, process.env.SECRET_KEY)
+
         // console.log("decodeed token from group controller", usernameToUserId(decodedtoken.username))
         if (!decodedtoken || !decodedtoken.username) {
             return res.status(401).json({ message: 'Invalid authorization token.' })
@@ -54,7 +54,7 @@ const create = async (req, res) => {
         console.log(`Created new group with id ${createdGroup._id}`)
         res.status(200).json(createdGroup)
     } catch (err) {
-        console.error('Error creating new group', err)
+        console.error('Error creating new group', req.body, err)
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
