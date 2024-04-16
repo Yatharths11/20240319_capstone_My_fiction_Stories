@@ -26,7 +26,8 @@ const storyRoutes = require("./routes/storyRoutes.js")
 const promptRoutes = require("./routes/promptRoutes.js")
 // Group Router -  Add to group, 
 const groupRoutes = require("./routes/groupRoutes.js");
-
+//Like Routes - Toggle likes for a story
+const likeRoutes = require("./routes/likeRoutes.js")
 
 // Connect to MongoDB asynchronously
 const connectToMongoDB = async () => {
@@ -44,7 +45,7 @@ app.use("/users", userRoutes)
 app.use("/story", storyRoutes)
 app.use("/prompt", promptRoutes)
 app.use("/group", groupRoutes)
-
+app.use("/likes", likeRoutes)
 // Start the server after connecting to MongoDB
 const startServer = async () => {
   const port = process.env.PORT || 3000

@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
 
-const group= require("../Controllers/groupsControllers")
+const group = require("../Controllers/groupsControllers")
 
 
 

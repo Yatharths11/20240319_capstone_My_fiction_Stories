@@ -10,11 +10,6 @@ const Likes = new mongoose.Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'Users',
         default: 0,
-    },
-    dislikes:{
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: 'Users',
-        default: 0,
     }
 })
 
