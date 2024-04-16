@@ -19,4 +19,4 @@ const Likes = new mongoose.Schema({
 })
 
 
-
+module.exports = new mongoose.model("Likes", Likes)
